@@ -1,0 +1,13 @@
+case,accumulator,rs1,rs2,expected,description
+1,100,10,13,103,basic vector
+2,0,13,10,3,reversed operands
+3,0,-10,13,23,negative and positive
+4,0,13,-10,23,positive and negative
+5,77,42,42,77,zero absolute difference
+6,0,2147483647,-2147483648,4294967295,maximum signed difference
+7,0,-2147483648,2147483647,4294967295,reversed maximum difference
+8,4294967295,0,1,0,accumulator wraparound
+9,4294967294,-2147483648,0,2147483646,minimum signed value
+10,0,-1,-2147483648,2147483647,minimum signed boundary
+11,0,2147483647,0,2147483647,maximum signed boundary
+12,2147483648,100,13,2147483735,accumulator high bit
