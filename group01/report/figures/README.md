@@ -4,7 +4,7 @@
 
 | 檔名 | 說明 | 使用於 |
 |---|---|---|
-| | | |
+| [`cp1_test_result.png`](cp1_test_result.png) | VS Code 終端機執行 `test_sad` 的結果，12 組 `PASS`（語意修訂前截圖） | [`../CP1.md`](../CP1.md) 圖 1 |
 
 ## 規定
 
