@@ -28,13 +28,18 @@ group01/
 │   ├── CP2.md
 │   ├── CP3.md
 │   └── figures/
-│       └── README.md
+│       ├── README.md
+│       ├── cp1_test_result.png      CP1 測試執行畫面
+│       └── sad_encoding_run.png     CP3 編碼腳本執行畫面
 └── src/
     ├── README.md
     ├── c_baseline/           CP1：C 參考實作、測試、測資
     │   └── README.md
-    └── rv32im/               CP2：RV32IM 組合語言與指令統計
-        └── README.md
+    ├── rv32im/               CP2：RV32IM 組合語言與指令統計
+    │   └── README.md
+    └── tools/                CP3：編碼產生與檢查腳本
+        ├── README.md
+        └── sad_encoding.py
 ```
 
 ## 進度

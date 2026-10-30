@@ -208,6 +208,23 @@ encoding = (funct7 << 25) | (rs2 << 20) | (rs1 << 15)
 
 例如範例 1 的 `0x00C5850B` 拆成 `0000000 | 01100 01011 | 000 | 01010 | 0001011`，重算時只替換最左邊的 `funct7` 與中間的 `funct3`，其餘位元逐一保留即可。
 
+機器碼以 [`src/tools/sad_encoding.py`](../src/tools/sad_encoding.py) 產生並自我檢查。
+腳本內建 2.4 節三組預期值，算錯會直接丟出 `AssertionError`：
+
+```text
+python sad_encoding.py
+SAD x10, x11, x12: 0x00C5850B
+SAD x5, x6, x7: 0x0073028B
+SAD x15, x16, x17: 0x0118078B
+```
+
+`FUNCT7`、`FUNCT3` 是腳本最上方的兩個常數，正式值公布後改這兩個數字並重跑，
+三組機器碼會一起更新，不需要手算。
+
+![sad_encoding.py 的執行結果](figures/sad_encoding_run.png)
+
+圖 1：執行 `sad_encoding.py` 的輸出，三組機器碼與 2.4 節表格一致，欄位以 `|` 分組顯示。
+
 ### 2.4 範例（含 1 個邊界值）
 
 以下以 `x10 = rd`、`x11 = rs1`、`x12 = rs2`（範例 1）與其他暫存器組合示範。
