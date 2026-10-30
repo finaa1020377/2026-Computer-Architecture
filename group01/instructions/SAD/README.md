@@ -8,8 +8,8 @@
 | 題目類別 | AI / 視覺類 |
 | 運算元類型 | 二元（累加） |
 | 輸入定義 | `rd` 為累加器，同時是來源與目的 |
-| 語意公式 | `rd_new = rd_old + \|signed(rs1) - signed(rs2)\|` |
-| 溢位處理 | 結果保留低 32 bits（modulo `2^32`） |
+| 語意公式 | `rd_new = rd_old + \|rs1 - rs2\|`（所有運算 mod `2^32`） |
+| 溢位處理 | 減法、絕對值與累加皆保留低 32 bits（wrap-around） |
 
 SAD 用來計算兩個 signed 32-bit 數值的絕對差，並加到 `rd` 原本的累加值。執行時必須先讀取 `rd_old`、`rs1` 與 `rs2`，完成計算後再將結果寫回 `rd`。
 
@@ -30,7 +30,15 @@ SAD 用來計算兩個 signed 32-bit 數值的絕對差，並加到 `rd` 原本�
 ### 語意（公式）
 
 ```text
-rd_new = rd_old + |signed(rs1) - signed(rs2)|
+rd_new = rd_old + |rs1 - rs2|        （所有運算皆 mod 2^32）
+```
+
+拆成三步，每一步都以 32-bit wrap 計算：
+
+```text
+d      = (rs1 - rs2) mod 2^32
+ad     = (d[31] == 1) ? (0 - d) mod 2^32 : d
+rd_new = (rd_old + ad) mod 2^32
 ```
 
 `rd_old` 是執行指令前的 `rd` 值。硬體先讀取 `rd_old`、`rs1`、`rs2`，計算完成後才將結果寫回 `rd`。
@@ -39,30 +47,43 @@ rd_new = rd_old + |signed(rs1) - signed(rs2)|
 
 - `rs1`、`rs2`：signed 32-bit 二補數整數。
 - `rd`：32-bit 累加器，同時是來源與目的。
-- 三個暫存器欄位各為 5 bits。
+- 三個暫存器欄位各為 5 bits；`rd = x0` 時寫回被丟棄。
 
 ### 結果範圍與溢位處理
 
-絕對差的數學值範圍是 `0` 至 `0xFFFFFFFF`。累加結果保留低 32 bits：
+結果是 32-bit 位元樣式 `0x00000000`–`0xFFFFFFFF`（有號解讀 `-2^31`–`2^31-1`），不飽和、不 trap：
 
 ```text
-rd_new = (rd_old + abs(signed(rs1) - signed(rs2))) mod 2^32
+rd_new = (rd_old + abs((rs1 - rs2) mod 2^32)) mod 2^32
 ```
 
-例如 `rs1 = INT32_MAX`、`rs2 = INT32_MIN` 時，絕對差是 `0xFFFFFFFF`。
+| 條件 | 處理方式 | 例子 |
+|---|---|---|
+| `rs1 = rs2` | 差值為 0，`rd` 不變 | `rd=77, rs1=rs2=42 → 77` |
+| `d = 0x80000000` | 絕對值溢位，取負後仍為 `0x80000000` | `rd=0, rs1=0x80000000, rs2=0 → 0x80000000` |
+| `rd_old + ad ≥ 2^32` | 保留低 32 bits | `rd=0xFFFFFFFF, rs1=0, rs2=1 → 0` |
+| `rs1 − rs2` 溢位 | 先取低 32 bits 再取絕對值 | `(INT32_MAX, INT32_MIN) → d=0xFFFFFFFF=−1 → ad=1` |
 
 ### 虛擬碼
 
 ```text
 function SAD(rd_old, rs1, rs2):
-    if signed(rs1) >= signed(rs2):
-        difference = unsigned(rs1) - unsigned(rs2)
-    else:
-        difference = unsigned(rs2) - unsigned(rs1)
-    return (rd_old + difference) mod 2^32
+    a  = X[rs1]                  # 舊值
+    b  = X[rs2]                  # 舊值
+    c  = X[rd]                   # 舊累加值，必須早於寫回
+    d  = (a - b) mod 2^32
+    ad = (d[31] == 1) ? (0 - d) mod 2^32 : d
+    if rd != x0:
+        X[rd] = (c + ad) mod 2^32
 ```
 
-使用 unsigned 減法表示絕對差，避免 `INT32_MIN` 取負值或 signed overflow。
+其中 `0 - d` 是二補數取負（`~d + 1`），對 `d = 0x80000000` 仍得到 `0x80000000`。
+
+### 讀寫順序與讀埠
+
+- `rd` 同時是來源與目的，必須「先讀舊值、再計算、最後寫回」；若先寫後讀，結果會退化成 `|rs1 − rs2|`。
+- 同一週期需要 `rd_old`、`rs1`、`rs2` 三個值，因此暫存器檔需要 **3 個讀埠**（3R1W）；標準 2R1W 無法單週期完成。
+- 相鄰兩條 SAD 共用 `rd` 會產生 RAW hazard，管線實作需 forwarding 或 stall。
 
 ### R-type 編碼
 
@@ -92,12 +113,14 @@ machine code = 0x0073028B
 
 ### 測試向量
 
-| `rd_old` | `rs1` | `rs2` | `rd_new` |
-|---:|---:|---:|---:|
-| 100 | 10 | 13 | 103 |
-| 0 | -10 | 13 | 23 |
-| 77 | 42 | 42 | 77 |
-| 0 | `INT32_MAX` | `INT32_MIN` | `0xFFFFFFFF` |
+| `rd_old` | `rs1` | `rs2` | `rd_new` | 說明 |
+|---:|---:|---:|---:|---|
+| 100 | 10 | 13 | 103 | 基本 |
+| 0 | -10 | 13 | 23 | 正負混合 |
+| 77 | 42 | 42 | 77 | 零差值 |
+| 0xFFFFFFFF | 0 | 1 | 0 | 累加溢位 |
+| 0 | `INT32_MIN` | 0 | `0x80000000` | 絕對值溢位 |
+| 0 | `INT32_MAX` | `INT32_MIN` | 1 | 減法溢位（`d` 回繞成 `-1`） |
 
 完整的 12 組測資見 [`../../src/c_baseline/test_vectors.csv`](../../src/c_baseline/test_vectors.csv)。
 
@@ -105,12 +128,12 @@ machine code = 0x0073028B
 
 對應片段見 [`../../src/rv32im/README.md`](../../src/rv32im/README.md)：
 
-| 實作 | 靜態指令數 | 動態指令數 |
-|---|---:|---:|
-| RV32IM baseline | 6 | 5 或 6 |
-| SAD 自訂指令 | 1 | 1 |
+| 實作 | 靜態指令數 | 動態指令數 | 分支數 |
+|---|---:|---:|---:|
+| RV32IM baseline | 5 | 5 | 0 |
+| SAD 自訂指令 | 1 | 1 | 0 |
 
-baseline 使用 `slt`、`sub`、`beq`、`add` 完成比較、絕對差與累加。
+baseline 使用 `sub`、`srai`、`xor`、`sub`、`add` 完成減法、絕對值與累加，沒有分支。
 
 ## 參考資料
 

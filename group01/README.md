@@ -41,9 +41,9 @@ group01/
 
 | Checkpoint | 內容 | 實作 | 報告 |
 |---|---|---|---|
-| CP1 | C baseline | [`src/c_baseline/`](src/c_baseline/) | [`report/CP1.md`](report/CP1.md)（待填寫） |
-| CP2 | RV32IM 實作 | [`src/rv32im/`](src/rv32im/) | [`report/CP2.md`](report/CP2.md)（待填寫） |
-| CP3 | 指令規格與編碼 | [`instructions/SAD/`](instructions/SAD/) | [`report/CP3.md`](report/CP3.md)（待填寫） |
+| CP1 | C baseline | [`src/c_baseline/`](src/c_baseline/) | [`report/CP1.md`](report/CP1.md)（已完成） |
+| CP2 | RV32IM 實作 | [`src/rv32im/`](src/rv32im/) | [`report/CP2.md`](report/CP2.md)（已完成） |
+| CP3 | 指令規格與編碼 | [`instructions/SAD/`](instructions/SAD/) | [`report/CP3.md`](report/CP3.md)（已完成） |
 
 ## 繳交流程
 
