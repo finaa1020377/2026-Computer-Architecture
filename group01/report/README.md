@@ -17,7 +17,7 @@
 |---|---|---|---|---|
 | CP1 C baseline | Week 6 | [CP1.md](CP1.md) | [`src/c_baseline/`](../src/c_baseline/) | 待填寫 |
 | CP2 RV32IM 實作 | Week 6–7 | [CP2.md](CP2.md) | [`src/rv32im/`](../src/rv32im/) | 待填寫 |
-| CP3 指令規格與編碼 | Week 8 | [CP3.md](CP3.md) | [`instructions/SAD/`](../instructions/SAD/) | 待填寫 |
+| CP3 指令規格與編碼 | Week 8 | [CP3.md](CP3.md) | [`instructions/SAD/`](../instructions/SAD/) | 已完成 |
 
 圖檔放在 [`figures/`](figures/)。
 
