@@ -26,6 +26,8 @@ add   a0, a0, t1       # accumulator + absolute difference
 
 這段程式只使用 RV32I 指令；RV32I 是 RV32IM 的子集，因此符合 RV32IM 限制。
 
+可組譯的完整版本見 [`sad.S`](sad.S)：上面 6 條指令原樣放在 `sad_accumulate` 內，最後多一條 `jalr zero, 0(ra)`（等同 `ret`）作為函式返回。這條屬於呼叫成本，不計入下表的核心指令統計。
+
 ## 指令統計
 
 | 項目 | 數量 |
