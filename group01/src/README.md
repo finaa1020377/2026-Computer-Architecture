@@ -6,5 +6,6 @@
 |---|---|---|
 | [`c_baseline/`](c_baseline/) | CP1 | C 參考實作、可執行測試、12 組測資與預期輸出 |
 | [`rv32im/`](rv32im/) | CP2 | RV32IM 組合語言、靜態與動態指令數、分支數 |
+| [`tools/`](tools/) | CP3 | 編碼產生與檢查腳本 `sad_encoding.py` |
 
 CP3 的指令規格與編碼在 [`../instructions/SAD/README.md`](../instructions/SAD/README.md)。

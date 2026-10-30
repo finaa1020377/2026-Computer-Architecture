@@ -22,6 +22,7 @@ SAD 用來計算兩個 signed 32-bit 數值的絕對差，並加到 `rd` 原本�
 | CP1 C 參考實作與測試 | [`../../src/c_baseline/`](../../src/c_baseline/) |
 | CP2 RV32IM baseline 與指令統計 | [`../../src/rv32im/`](../../src/rv32im/) |
 | CP3 指令規格與編碼 | 本檔「指令規格」 |
+| CP3 編碼產生與檢查腳本 | [`../../src/tools/sad_encoding.py`](../../src/tools/sad_encoding.py) |
 | 報告 | [`../../report/`](../../report/) |
 | 個人貢獻 | [`../../CONTRIBUTIONS.md`](../../CONTRIBUTIONS.md) |
 
