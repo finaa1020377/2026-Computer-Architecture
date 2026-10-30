@@ -1,0 +1,55 @@
+﻿SAD 測試向量驗證結果（CP3 / 成員 3）
+=====================================
+
+環境
+- 編譯器：gcc 16.2.0（Compiler Explorer 上的 x86-64 gcc 16.2.0；與報告提到的 MSYS2 UCRT64 版號相同）
+- 本機沒有安裝 gcc，因此以相同版號的 gcc 實際編譯並執行，未手動抄寫執行結果
+- 編譯指令（在 tests/ 目錄下）：
+    gcc -std=c11 -Wall -Wextra -Werror verify_vectors.c ../c_baseline/sad.c -o verify_vectors
+- 執行指令：
+    ./verify_vectors < test_vectors.csv
+    ./verify_vectors --md < test_vectors.csv
+
+輸出
+----
+[1] ./verify_vectors < test_vectors.csv
+    compile: code=0, diagnostics=0
+    exit code: 0
+
+#   rd_old      rs1          rs2          d           expected    actual   boundary  result
+1   100         10           13           0xFFFFFFFD  0x00000067  0x00000067 -         PASS
+2   0           -10          13           0xFFFFFFE9  0x00000017  0x00000017 -         PASS
+3   0           13           -10          0x00000017  0x00000017  0x00000017 -         PASS
+4   77          42           42           0x00000000  0x0000004D  0x0000004D B1        PASS
+5   0           2147483647   -2147483648  0xFFFFFFFF  0x00000001  0x00000001 B4,SE     PASS
+6   0           -2147483648  2147483647   0x00000001  0x00000001  0x00000001 B4,SE     PASS
+7   4294967295  0            1            0xFFFFFFFF  0x00000000  0x00000000 B3        PASS
+8   4294967294  -2147483648  0            0x80000000  0x7FFFFFFE  0x7FFFFFFE B2,B3,SE  PASS
+9   0           -1           -2147483648  0x7FFFFFFF  0x7FFFFFFF  0x7FFFFFFF SE        PASS
+10  0           2147483647   0            0x7FFFFFFF  0x7FFFFFFF  0x7FFFFFFF SE        PASS
+11  1234        -200         -250         0x00000032  0x00000504  0x00000504 -         PASS
+12  2147483648  100          13           0x00000057  0x80000057  0x80000057 -         PASS
+
+12 組向量，12 組通過，0 組失敗
+邊界向量：7 組（要求至少 3 組）OK
+向量總數：12 組（要求至少 10 組）OK
+
+[2] ./verify_vectors --md < test_vectors.csv
+    compile: code=0, diagnostics=0
+    exit code: 0
+
+| # | `rd_old` | `rs1` | `rs2` | `d` | `ad` | `rd_new` | 類型 |
+|---:|---:|---:|---:|---|---:|---:|---|
+| 1 | 100 | 10 | 13 | `0xFFFFFFFD` | `0x00000003` | 103 | - |
+| 2 | 0 | -10 | 13 | `0xFFFFFFE9` | `0x00000017` | 23 | - |
+| 3 | 0 | 13 | -10 | `0x00000017` | `0x00000017` | 23 | - |
+| 4 | 77 | 42 | 42 | `0x00000000` | `0x00000000` | 77 | B1 |
+| 5 | 0 | 2147483647 | -2147483648 | `0xFFFFFFFF` | `0x00000001` | 1 | B4,SE |
+| 6 | 0 | -2147483648 | 2147483647 | `0x00000001` | `0x00000001` | 1 | B4,SE |
+| 7 | 4294967295 | 0 | 1 | `0xFFFFFFFF` | `0x00000001` | 0 | B3 |
+| 8 | 4294967294 | -2147483648 | 0 | `0x80000000` | `0x80000000` | 2147483646 | B2,B3,SE |
+| 9 | 0 | -1 | -2147483648 | `0x7FFFFFFF` | `0x7FFFFFFF` | 2147483647 | SE |
+| 10 | 0 | 2147483647 | 0 | `0x7FFFFFFF` | `0x7FFFFFFF` | 2147483647 | SE |
+| 11 | 1234 | -200 | -250 | `0x00000032` | `0x00000032` | 1284 | - |
+| 12 | 2147483648 | 100 | 13 | `0x00000057` | `0x00000057` | 2147483735 | - |
+12 組向量，12 組通過，0 組失敗，邊界 7 組
